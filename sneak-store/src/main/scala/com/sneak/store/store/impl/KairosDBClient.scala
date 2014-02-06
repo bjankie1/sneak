@@ -16,6 +16,7 @@ import akka.pattern.ask
 import akka.actor.ActorSystem
 import akka.io.IO
 import akka.util.Timeout
+import spray.httpx.SprayJsonSupport._
 
 /**
  * Client to KairosDB database.
@@ -46,7 +47,7 @@ class KairosDBClient(implicit config: Config) extends MetricsStore {
    * @param metric
    */
   override def storeMetric(metric: Message): Future[_] = {
-    pipeline.flatMap(_(Post("/api/v1/datapoints", metric)))
+    storeMetrics(List(metric))
   }
 
   /**

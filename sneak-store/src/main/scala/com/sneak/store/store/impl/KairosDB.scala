@@ -2,22 +2,19 @@ package com.sneak.store.store.impl
 
 import spray.json._
 import com.sneak.thrift.Message
-import spray.http.ContentTypes
+import scala.collection.immutable.Map
 
-class MetricsWriter extends RootJsonWriter[Message] {
-  override def write(obj: Message): JsValue = ???
-}
 
 object KairosDBProtocol extends DefaultJsonProtocol {
 
-  implicit object ColorJsonFormat extends RootJsonFormat[Message] {
-    def write(msg: Message) = {
-      val tags = msg.options.mapValues[JsValue](v => JsString(v)) +
-        "host" -> JsString(msg.host) +
-        "application" -> JsString(msg.application)
+  implicit object KairosDBJsonFormat extends RootJsonFormat[Message] {
+    def write(msg: Message): JsObject = {
+      val tags: Map[String, JsValue] = msg.options.toMap.mapValues[JsValue](v => JsString(v)) +
+                 ("host" -> JsString(msg.host)) +
+                 ("application" -> JsString(msg.application))
       JsObject(
         "name" -> JsString(msg.name),
-        "datapoints" -> JsNumber(msg.value),
+        "datapoints" -> JsArray(JsArray(JsNumber(msg.timestamp), JsNumber(msg.value))),
         "tags" -> JsObject(tags)
       )
     }
